@@ -1,9 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Meu Jogo</title>
+  <title>Quadrado Multiplayer</title>
+  <style>
+    canvas { background: #eee; display: block; margin: auto; }
+  </style>
 </head>
 <body>
-  <h1>Olá, Daniel! Meu jogo está online 🚀</h1>
+  <h2>Escolha sua cor:</h2>
+  <input type="color" id="colorPicker" value="#ff0000">
+  <button onclick="startGame()">Entrar no jogo</button>
+  <canvas id="gameCanvas" width="500" height="500"></canvas>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    let players = {};
+
+    function startGame() {
+      const color = document.getElementById("colorPicker").value;
+      socket.emit("newPlayer", color);
+    }
+
+    socket.on("updatePlayers", (data) => {
+      players = data;
+      draw();
+    });
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let id in players) {
+        let p = players[id];
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, 30, 30);
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowUp") socket.emit("move", "up");
+      if (e.key === "ArrowDown") socket.emit("move", "down");
+      if (e.key === "ArrowLeft") socket.emit("move", "left");
+      if (e.key === "ArrowRight") socket.emit("move", "right");
+    });
+  </script>
 </body>
 </html>
